@@ -1,0 +1,51 @@
+#!/usr/bin/python
+
+# Purpose:  Quickie backup script 
+
+import sys
+import os
+import argparse
+import subprocess
+import time
+import boto
+import boto.s3
+
+def run(string):
+    if os.system(string) > 0:
+        raise Exception("Error running {}".format(string))
+
+def main():
+    p = argparse.ArgumentParser()
+
+    p.add_argument("-name", help="backup name", required=True)
+    p.add_argument("-bucket", help="bucket name", required=True)
+    p.add_argument("-count", type=int, help="count of daily backups to keep", required=True)
+    p.add_argument("-path", help="path in bucket", default="/")
+    p.add_argument("command", nargs="+")
+
+    args = p.parse_args()
+
+    count = int((time.time()/ 86400) % args.count)
+    filename= "{name}.{count}".format(name=args.name, count=count)
+
+    c = boto.connect_s3(profile_name="default")
+    b = c.get_bucket("backups")
+    k = b.get_key("{prefix}/{filename}".format(prefix = args.path, filename = filename), validate=False)
+
+    process = subprocess.Popen(args.command, stdout=subprocess.PIPE)
+    with open(filename, "wb") as f:
+        buf = process.stdout.read(1024*16)
+        while not buf == "":
+            f.write(buf)
+            buf = process.stdout.read(1024*16)
+
+    k.set_contents_from_filename(filename)
+
+    if process.wait() > 0:
+        raise Exception("Command {} did not complete successfully".format(" ".join(args.command)))
+
+                  
+                
+if __name__ == "__main__":
+    main()
+
