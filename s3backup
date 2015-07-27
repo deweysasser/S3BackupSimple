@@ -17,19 +17,20 @@ def run(string):
 def main():
     p = argparse.ArgumentParser()
 
-    p.add_argument("-name", help="backup name", required=True)
-    p.add_argument("-bucket", help="bucket name", required=True)
-    p.add_argument("-count", type=int, help="count of daily backups to keep", required=True)
-    p.add_argument("-path", help="path in bucket", default="/")
-    p.add_argument("command", nargs="+")
+    p.add_argument("-profile", help="boto profile name", required=False)
+    p.add_argument("-bucket", help="bucket name.  defaults to 'backups'", default="backups")
+    p.add_argument("-count", type=int, help="count of daily backups to keep.  Default 3", default=3)
+    p.add_argument("-path", help="path in bucket.  Defaults to root of bucket.", default="/")
+    p.add_argument("-filename", help="backup name", required=True)
+    p.add_argument("command", help="command to run, with all arguments", nargs=argparse.REMAINDER)
 
     args = p.parse_args()
 
     count = int((time.time()/ 86400) % args.count)
-    filename= "{name}.{count}".format(name=args.name, count=count)
+    filename= "{name}.{count}".format(name=args.filename, count=count)
 
-    c = boto.connect_s3(profile_name="default")
-    b = c.get_bucket("backups")
+    c = boto.connect_s3(profile_name=args.profile)
+    b = c.get_bucket(args.bucket)
     k = b.get_key("{prefix}/{filename}".format(prefix = args.path, filename = filename), validate=False)
 
     process = subprocess.Popen(args.command, stdout=subprocess.PIPE)
