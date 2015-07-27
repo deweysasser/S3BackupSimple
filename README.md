@@ -43,3 +43,44 @@ upcoming feature.
                             Frequency of rotation. Default 'day'.
       -path PATH            path in bucket. Defaults to root of bucket.
       -filename FILENAME    backup name
+
+## AWS Permissions/Policies
+
+## The user writing the backups needs
+
+     {
+         "Version": "2012-10-17",
+         "Statement": [
+             {
+                 "Effect": "Allow",
+                 "Action": [
+                     "s3:List*",
+                     "s3:PutObjectACL",
+                     "s3:PutObject"
+                 ],
+                 "Resource": [
+                     "arn:aws:s3:::<BUCKET>"
+                 ]
+             }
+         ]
+     }
+
+## The S3 bucket needs
+
+     {
+     	"Version": "2012-10-17",
+     	"Statement": [
+     		{
+     			"Effect": "Allow",
+     			"Principal": {
+     				"AWS": "<USERARN>
+     			},
+     			"Action": [
+     				"s3:PutObject",
+     				"s3:PutObjectAcl"
+     			],
+     			"Resource": "arn:aws:s3:::<BUCKET>/*"
+     		}
+     	]
+     }
+
