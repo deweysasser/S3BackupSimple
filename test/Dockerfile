@@ -5,11 +5,14 @@ RUN echo 'Acquire::https::proxy DIRECT;' >> /etc/apt/apt.conf
 
 RUN apt-get update
 RUN apt-get install -y python-pip
+RUN apt-get install -y git
 
-#COPY dist/S3BackupSimple-0.1-py2.7.egg /root/
-#RUN easy_install /root/S3BackupSimple-0.1-py2.7.egg
-#RUN s3backup -h
+COPY dist/SimpleS3Backup-*.egg /root/
+RUN easy_install /root/SimpleS3Backup-*.egg
 
-RUN pip install S3BackupSimple
+#RUN pip install SimpleS3Backup
+#RUN pip install git+https://github.com/deweysasser/SimpleS3Backup
+
+RUN s3backup -h
 
 
