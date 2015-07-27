@@ -33,16 +33,20 @@ def main():
     k = b.get_key("{prefix}/{filename}".format(prefix = args.path, filename = filename), validate=False)
 
     process = subprocess.Popen(args.command, stdout=subprocess.PIPE)
-    with open(filename, "wb") as f:
-        buf = process.stdout.read(1024*16)
-        while not buf == "":
-            f.write(buf)
+    try:
+        with open(filename, "wb") as f:
             buf = process.stdout.read(1024*16)
+            while not buf == "":
+                f.write(buf)
+                buf = process.stdout.read(1024*16)
 
-    k.set_contents_from_filename(filename)
+        k.set_contents_from_filename(filename)
 
-    if process.wait() > 0:
-        raise Exception("Command {} did not complete successfully".format(" ".join(args.command)))
+        if process.wait() > 0:
+            raise Exception("Command {} did not complete successfully".format(" ".join(args.command)))
+
+    finally:
+        os.remove(filename)
 
                   
                 
