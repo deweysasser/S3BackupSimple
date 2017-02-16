@@ -47,10 +47,10 @@ def main():
     try:
         process = subprocess.Popen(args.command, stdout=subprocess.PIPE)
         with open(filename, "wb") as f:
-            buf = process.stdout.read(1024*16)
+            buf = process.stdout.read(1024*1024)
             while not buf == "":
                 f.write(buf)
-                buf = process.stdout.read(1024*16)
+                buf = process.stdout.read(1024*1024)
 
         if process.wait() > 0:
             raise Exception("Command {} did not complete successfully".format(" ".join(args.command)))
