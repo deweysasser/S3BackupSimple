@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name = "SimpleS3Backup",
-    version = "0.1",
+    version = "0.2",
     author = "Dewey Sasser",
     author_email = "dewey@sasser.com",
     description = ("A simple backup script that saves artbitrary command output to s3 in a rotating series of files"),
