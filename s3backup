@@ -31,6 +31,8 @@ def main():
                    choices=['minute', 'hour', 'day', 'week'], default='day')
     p.add_argument("-path", help="path in bucket.  Defaults to root of bucket.", default="/")
     p.add_argument("-filename", help="backup name", required=True)
+    p.add_argument("-gzip", help="gzip the command output", action="store_true")
+    p.add_argument("-verbose", help="output verbose information", action="store_true")
     p.add_argument("command", help="command to run, with all arguments", nargs=argparse.REMAINDER)
 
     args = p.parse_args()
@@ -38,14 +40,27 @@ def main():
     divisor= Frequency[args.frequency]
 
     count = int((time.time()/ divisor) % args.count)
-    filename= "{name}.{count}".format(name=args.filename, count=count)
+    if args.gzip:
+        filename= "{name}.gz.{count}".format(name=args.filename, count=count)
+        if args.verbose: print "gzipping file to %s" % filename
+    else:
+        filename= "{name}.{count}".format(name=args.filename, count=count)
+        if args.verbose: print "writing file to %s" % filename
 
     c = boto.connect_s3(profile_name=args.profile)
     b = c.get_bucket(args.bucket)
     k = b.get_key("{prefix}/{filename}".format(prefix = args.path, filename = filename), validate=False)
 
+    if args.gzip:
+        command=["bash", "-c", 
+                 "'{}' | gzip -c -f".format("' '".join(args.command))
+                 ]
+    else:
+        command=args.command
+
     try:
-        process = subprocess.Popen(args.command, stdout=subprocess.PIPE)
+        if args.verbose: print "running command '%s'" % command
+        process = subprocess.Popen(command, stdout=subprocess.PIPE)
         with open(filename, "wb") as f:
             buf = process.stdout.read(1024*1024)
             while not buf == "":
@@ -54,9 +69,14 @@ def main():
 
         if process.wait() > 0:
             raise Exception("Command {} did not complete successfully".format(" ".join(args.command)))
+        else:
+            if args.verbose: print "Command completed"
 
         k.set_contents_from_filename(filename)
+        if args.verbose: print "File uploaded"
 
+    except e as Exception:
+        print e
     finally:
         os.remove(filename)
 

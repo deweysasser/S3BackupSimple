@@ -28,7 +28,7 @@ upcoming feature.
 
     usage: s3backup [-h] [-profile PROFILE] [-bucket BUCKET] [-count COUNT]
                     [-frequency {minute,hour,day,week}] [-path PATH] -filename
-                    FILENAME
+                    FILENAME [-gzip] [-verbose]
                     ...
     
     positional arguments:
@@ -43,6 +43,8 @@ upcoming feature.
                             Frequency of rotation. Default 'day'.
       -path PATH            path in bucket. Defaults to root of bucket.
       -filename FILENAME    backup name
+      -gzip                 gzip the command output
+      -verbose              output verbose information
 
 ## AWS Permissions/Policies
 
